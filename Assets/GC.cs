@@ -104,8 +104,7 @@ public static class RectTransformEx {
 [Serializable]
 public class GC : MonoBehaviour {
     public enum Scenes { startMenu, newGame, play, fight, none }
-    public enum Locations { Wilderness, TheWrongPlanet }
-    public class Player {
+    [Serializable] public class Player {
         public string name = "Alek";
         public class Health {
             public double max, current;
@@ -116,10 +115,9 @@ public class GC : MonoBehaviour {
             public override string ToString(){ return current + "/" + max; }
         }
         public Health hp = new Health(0, 0);
-        public Locations location = Locations.TheWrongPlanet;
+        public Location location;
     }
-    [Serializable]
-    public class Scenes_{
+    [Serializable] public class Scenes_{
         [Serializable]
         public class InfoBar {
             public Transform transform;
@@ -171,7 +169,6 @@ public class GC : MonoBehaviour {
                 case Scenes.play:
                     scene = instantiateDefault();
                     addInfoBar();
-                    loadLocation();
                     break;
                 case Scenes.fight:
                     scene = instantiateDefault();
@@ -179,13 +176,6 @@ public class GC : MonoBehaviour {
                     break;
             }
             current = sceneID;
-        }
-        private void loadLocation() {
-            switch (player.location) {
-                case Locations.Wilderness:
-                    addFightButton();
-                    break;
-            }
         }
         private void addFightButton() {
             addButton(options, "Fight").button().onClick.AddListener(() =>load(Scenes.fight, true));
@@ -221,8 +211,7 @@ public class GC : MonoBehaviour {
             if(scene)Destroy(scene.gameObject);
         }
     }
-    [Serializable]
-    public class Camera_ {
+    [Serializable] public class Camera_ {
         [HideInInspector]
         public Camera c;
         public Color From, To;
@@ -270,7 +259,6 @@ public class GC : MonoBehaviour {
         player.name = name;
         player.hp.max = 1;
         player.hp.current = 1;
-        player.location = Locations.Wilderness;
         scenes.load(Scenes.play);
     }
 }
