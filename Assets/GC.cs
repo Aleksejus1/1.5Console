@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System;
 using UnityEngine.UI;
-using System.Collections.Generic;
 using UnityEditor;
 
 public class ReadOnlyAttribute : PropertyAttribute{
@@ -23,6 +22,13 @@ public static class TransformEx {
     public static Transform Clear(this Transform transform) {
         foreach (Transform child in transform) GameObject.Destroy(child.gameObject);
         return transform;
+    }
+    /// <summary>Instantiates inside of the parent</summary>
+    public static Transform instantiate(this Transform Prefab, Transform parent){
+        Transform newTransform = UnityEngine.Object.Instantiate(Prefab);
+        newTransform.SetParent(parent);
+        newTransform.localPosition = Vector3.zero;
+        return newTransform;
     }
     /// <summary>Changes the transform's name</summary>
     public static Transform setName(this Transform transform, string newName) {
@@ -103,114 +109,6 @@ public static class RectTransformEx {
 
 [Serializable]
 public class GC : MonoBehaviour {
-    public enum Scenes { startMenu, newGame, play, fight, none }
-    [Serializable] public class Player {
-        public string name = "Alek";
-        public class Health {
-            public double max, current;
-            public Health(double c, double m) {
-                current = c;
-                max = m;
-            }
-            public override string ToString(){ return current + "/" + max; }
-        }
-        public Health hp = new Health(0, 0);
-        public Location location;
-    }
-    [Serializable] public class Scenes_{
-        [Serializable]
-        public class InfoBar {
-            public Transform transform;
-            public Text health, name, location;
-            private Player player;
-            public InfoBar(Transform t, Player player) {
-                transform = t;
-                health = t.FindChild("Health").text();
-                name = t.FindChild("Name").text();
-                location = t.FindChild("Location").text();
-                this.player = player;
-                updateAll();
-            }
-            public void destroy() {
-                if(transform) Destroy(transform.gameObject);
-                transform = null;
-                health = null;
-                name = null;
-                location = null;
-            }
-            public void updateAll() { updateHealth(); updateName(); updateLocation(); }
-            public void updateHealth() { health.text = "Health: " + player.hp.ToString(); }
-            public void updateName() { name.text = player.name; }
-            public void updateLocation() { location.text = player.location.ToString(); }
-        }
-        [ReadOnly] public Scenes current = Scenes.none;
-        public Transform buttonPrefab,inputFieldPrefab,infoBarPrefab;
-        public Transform startMenu, defaultScene;
-        [HideInInspector] public List<InputField> inputFields;
-        private Transform scene, options;
-        public InfoBar infoBar = null;
-        [HideInInspector] public GC gc;
-        [HideInInspector] public Player player;
-        public void init(GC g, Player p) {
-            gc = g;
-            player = p;
-        }
-        public void load(Scenes sceneID, bool keepInfoBar = false){
-            unloadCurrentScene(keepInfoBar);
-            switch (sceneID) {
-                case Scenes.startMenu:
-                    (scene = _Instantiate(startMenu, Canvas)).FindChild("NewGame").button().onClick.AddListener(() => load(Scenes.newGame));
-                    break;
-                case Scenes.newGame:
-                    scene = instantiateDefault();
-                    addInputField(options, "Character Name...").setName("Name").inputField().characterLimit = 18;
-                    addButton(scene, "Create").rt().Anchor(RectTransformEx.AnchorPoint.BotCenter).Move(0f, 10f).transform.setName("Create").button().onClick.AddListener(() => gc.CreateNewCharacter(inputFields[0].text));
-                    break;
-                case Scenes.play:
-                    scene = instantiateDefault();
-                    addInfoBar();
-                    break;
-                case Scenes.fight:
-                    scene = instantiateDefault();
-                    
-                    break;
-            }
-            current = sceneID;
-        }
-        private void addFightButton() {
-            addButton(options, "Fight").button().onClick.AddListener(() =>load(Scenes.fight, true));
-        }
-        private Transform addInfoBar() {
-            if (infoBar != null){
-                Transform retVal = _Instantiate(infoBarPrefab, scene);
-                retVal.rt().anchoredPosition = Vector2.zero;
-                infoBar = new InfoBar(retVal, player);
-                return retVal;
-            }
-            else return null;
-        }
-        private Transform instantiateDefault(){
-            Transform retVal = _Instantiate(defaultScene, Canvas);
-            options = retVal.FindChild("Options");
-            return retVal;
-        }
-        private Transform addButton(Transform parent, string text){
-            Transform button = _Instantiate(buttonPrefab, parent);
-            button.text().text = text;
-            return button;
-        }
-        private Transform addInputField(Transform parent, string placeHolderText){
-            Transform inputField = _Instantiate(inputFieldPrefab, parent);
-            inputField.GetChild(0).text().text = placeHolderText;
-            inputFields.Add(inputField.GetComponent<InputField>());
-            return inputField;
-        }
-        private void unloadCurrentScene(bool keepInfoBar) {
-            if (!keepInfoBar&&infoBar!=null) infoBar.destroy();
-            inputFields.Clear();
-            if(scene)Destroy(scene.gameObject);
-        }
-    }
     [Serializable] public class Camera_ {
         [HideInInspector]
         public Camera c;
@@ -236,29 +134,25 @@ public class GC : MonoBehaviour {
             c.backgroundColor = Color.Lerp(From, To, progress / time);
         }
     }
+    [Serializable] public static class ScenePrefabs {
+        public static Transform defaultScene, startMenu;
+        public static Transform infoBarPrefab, buttonPrefab, inputFieldPrefab;
+    }
     public new Camera_ camera;
-    public Scenes_ scenes;
-    public Player player = new Player();
+    public static Player player = new Player();
     public static Transform Canvas;
     void Start(){
-        scenes.init(this, player);
         Canvas = GameObject.FindGameObjectWithTag("Canvas").transform;
         camera.c = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-        scenes.load(Scenes.startMenu);
+        Scenes.load(typeof(Scenes.startMenu));
     }
     void Update() {
         camera.flash();
-    }
-    private static Transform _Instantiate(Transform Prefab, Transform parent) {
-        Transform newTransform = Instantiate(Prefab);
-        newTransform.SetParent(parent);
-        newTransform.localPosition = Vector3.zero;
-        return newTransform;
     }
     public void CreateNewCharacter(string name){
         player.name = name;
         player.hp.max = 1;
         player.hp.current = 1;
-        scenes.load(Scenes.play);
+        Scenes.load(typeof(Scenes.play));
     }
 }

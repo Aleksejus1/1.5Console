@@ -11,5 +11,5 @@ public static class Monsters {
             MonoBehaviour.print(HP + " " + HPMax);
         }
     }
-    public static List<Type> monsterList = typeof(Monsters).GetNestedTypes().OfType<Type>().ToList();
+    public static List<Type> monsterList = typeof(Monsters).GetNestedTypes().OfType<Type>().ToList(); //List of all monster types
 }
