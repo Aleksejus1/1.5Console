@@ -1,50 +1,56 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class Scene {
-    public string name = "TheEndOfTheWorld";
-    public InfoBar infoBar = null;
+    public bool hasInfoBar = false;
     public Transform scene;
-    public Scene(string name) {
-        this.name = name;
+    protected GC.ScenePrefabs sp;
+    protected List<Text> IF = new List<Text>();
+    public Scene(GC.ScenePrefabs sp) {
+        this.sp = sp;
     }
     public virtual Transform load() {
-        unload(false);
-        /*
-        Transform retVal = GC._Instantiate(GC.defaultScene, Canvas);
-        options = retVal.FindChild("Options");
-        return retVal;*/
+        unload();
+        if (hasInfoBar && Scenes.infoBar == null) addInfoBar();
         return null;
     }
-    public virtual void unload(bool keepInfoBar) {
-        if (!keepInfoBar && infoBar != null) infoBar.destroy();
-        if (scene) Object.Destroy(scene.gameObject);
+    public virtual void unload() {
+        if (!hasInfoBar && Scenes.infoBar != null) Scenes.infoBar.destroy();
+        if (Scenes.currentScene) GameObject.Destroy(Scenes.currentScene.gameObject);
     }
+    protected Transform loadScene(Transform scenePrefab, Transform parent) { return scene = scenePrefab.instantiate(parent); }
     protected Transform addInfoBar(){
-        if (infoBar != null){
-            Transform retVal = GC._Instantiate(GC.ScenePrefabs.infoBarPrefab, scene);
+        if (Scenes.infoBar == null){
+            Transform retVal = sp.infoBarPrefab.instantiate(GC.Canvas);
             retVal.rt().anchoredPosition = Vector2.zero;
-            infoBar = new InfoBar(retVal);
+            Scenes.infoBar = new InfoBar(retVal);
             return retVal;
         }
         else return null;
     }
     protected Transform addButton(Transform parent, string text)
     {
-        Transform button = GC._Instantiate(GC.ScenePrefabs.buttonPrefab, parent);
+        Transform button = sp.buttonPrefab.instantiate(parent);
         button.text().text = text;
         return button;
     }
-    protected Transform addInputField(Transform parent, string placeHolderText)
-    {
-        Transform inputField = GC._Instantiate(GC.ScenePrefabs.inputFieldPrefab, parent);
-        inputField.GetChild(0).text().text = placeHolderText;
-        return inputField;
+    protected Transform addInputField(Transform parent, string IFName, string placeHolderText){
+        IF.Add(sp.inputFieldPrefab.instantiate(parent).setIFPHText(placeHolderText).setName(IFName).text());
+        return IF[IF.Count - 1].transform;
     }
+    protected Text getIF(string IFName) { foreach (Text t in IF) if (t.name == IFName) return t; return null; }
 }
 
 public class defaultScene : Scene{
+    public override Transform load(){
+        base.load();
+        scene = loadScene(sp.defaultScene, GC.Canvas);
+        options = scene.FindChild("Options");
+        return scene;
+    }
     public Transform options;
-    public defaultScene(string name) : base(name){}
+    public defaultScene(GC.ScenePrefabs sp) : base(sp) {}
     protected void addFightButton(){
         addButton(options, "Fight").button().onClick.AddListener(() => Scenes.load(typeof(Scenes.fight), true));
     }

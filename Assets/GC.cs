@@ -39,13 +39,21 @@ public static class TransformEx {
     public static RectTransform rt(this Transform transform) { return transform.GetComponent<RectTransform>(); }
     /// <summary>Returns Button Component</summary>
     public static Button button(this Transform transform) { return transform.GetComponent<Button>(); }
+    /// <summary>Sets the Listener for Button Component</summary>
+    public static Transform setButton(this Transform transform, UnityEngine.Events.UnityAction call) { transform.button().onClick.AddListener(call); return transform; }
     /// <summary>Returns InputField Component</summary>
     public static InputField inputField(this Transform transform) { return transform.GetComponent<InputField>(); }
+    /// <summary>Sets InputField's Placeholder Text</summary>
+    public static Transform setIFPHText(this Transform transform, string text) { transform.GetChild(0).setText(text); return transform; }
+    /// <summary>Sets InputField's Input Limit</summary>
+    public static Transform setIFLimit(this Transform transform, int limit) { transform.inputField().characterLimit = limit; return transform; }
+    /// <summary>Sets Text component's text</summary>
+    public static Transform setText(this Transform transform, string text) { transform.text().text = text; return transform; }
     /// <summary>Returns Text Component</summary>
     public static Text text(this Transform transform) { return transform.GetComponent<Text>(); }
 }
+public enum AnchorPoint { TopLeft, TopCenter, TopRight, Left, Center, Right, BotLeft, BotCenter, BotRight }
 public static class RectTransformEx {
-    public enum AnchorPoint { TopLeft, TopCenter, TopRight, Left, Center, Right, BotLeft, BotCenter, BotRight }
     /// <summary>Anchors to a different Anchor Point</summary>
     public static RectTransform Anchor(this RectTransform rt, AnchorPoint ap) {
         Vector2 min = Vector2.zero, max = Vector2.zero, pivot = Vector2.zero;
@@ -134,14 +142,16 @@ public class GC : MonoBehaviour {
             c.backgroundColor = Color.Lerp(From, To, progress / time);
         }
     }
-    [Serializable] public static class ScenePrefabs {
-        public static Transform defaultScene, startMenu;
-        public static Transform infoBarPrefab, buttonPrefab, inputFieldPrefab;
+    [Serializable] public class ScenePrefabs{
+        public Transform defaultScene, startMenu;
+        public Transform infoBarPrefab, buttonPrefab, inputFieldPrefab;
     }
+    public ScenePrefabs scenePrefabs;
     public new Camera_ camera;
     public static Player player = new Player();
     public static Transform Canvas;
     void Start(){
+        Scenes.sp = scenePrefabs;
         Canvas = GameObject.FindGameObjectWithTag("Canvas").transform;
         camera.c = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
         Scenes.load(typeof(Scenes.startMenu));
@@ -149,10 +159,10 @@ public class GC : MonoBehaviour {
     void Update() {
         camera.flash();
     }
-    public void CreateNewCharacter(string name){
+    public static void CreateNewCharacter(string name){
         player.name = name;
         player.hp.max = 1;
         player.hp.current = 1;
-        Scenes.load(typeof(Scenes.play));
+        player.location = new Locations.Wilderness();
     }
 }

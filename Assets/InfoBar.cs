@@ -22,5 +22,5 @@ using UnityEngine.UI;
     public void updateAll() { updateHealth(); updateName(); updateLocation(); }
     public void updateHealth() { health.text = "Health: " + GC.player.hp.ToString(); }
     public void updateName() { name.text = GC.player.name; }
-    public void updateLocation() { location.text = GC.player.location.ToString(); }
+    public void updateLocation() { location.text = GC.player.location.name; }
 }

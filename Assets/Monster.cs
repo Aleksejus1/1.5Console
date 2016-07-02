@@ -1,9 +1,7 @@
 ﻿using System;
 
-[Serializable] public class Monster{
-    public string name;
+[Serializable] public class Monster : Entity{
     public Dice HPD, HD;
-    public int level;
     public Monster(string name, Dice HPD, Dice HD) {
         this.name = name;
         this.HPD = HPD;

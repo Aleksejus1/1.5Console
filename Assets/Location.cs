@@ -13,4 +13,10 @@ using UnityEngine;
         else this.monsterList = monsterList;
     }
     public Location addMonster(Type monsterType) { monsterList.Add(monsterType); return this; }
+    public Monster getMonster() {
+        return new Monsters.worm(getLevel());
+    }
+    public int getLevel() {
+        return UnityEngine.Random.Range((int)monsterLevelRange.x, (int)monsterLevelRange.y);
+    }
 }

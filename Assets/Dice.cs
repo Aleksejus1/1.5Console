@@ -23,9 +23,10 @@
     }
     public static implicit operator int(Dice d) { return d.roll(); }
     public static int operator *(int integer, Dice d){
+        int count = d.count;
         d.count *= integer;
         int retVal = d;
-        d.count /= integer;
+        d.count = count;
         return retVal;
     }
     public static int operator *(Dice di, int i) { return i * di; }
