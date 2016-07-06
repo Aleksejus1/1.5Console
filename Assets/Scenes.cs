@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Reflection;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 [Serializable]
 public static class Scenes {
@@ -46,32 +46,29 @@ public static class Scenes {
             getButton("Cancel").transform.enable();
             getText("SelectInfo").transform.enable();
             foreach(Transform child in enemies) {
-                buttons.Add(child.newButton().button());
-                child.setButton(()=> { selectEnemy(child); }).button().targetGraphic = child.text();
+                if (Battle.getTarget(child.name).hp.state != State.dead) {
+                    buttons.Add(child.newButton().button());
+                    child.setButton(delegate() {
+                    selectEnemy(GC.lastButton);
+                }).button().targetGraphic = child.text();
+                }
             }
         }
         public void selectEnemy(Transform enemy) {
-            Debug.Log("Enemy has been selected");
             getButton("Attack").transform.enable();
             getButton("Cancel").transform.disable();
             getText("SelectInfo").transform.disable();
             foreach(Transform child in enemies) if(child.button()) GameObject.Destroy(child.button());
-            if(enemy!=null) { Battle.attack(Battle.getTarget(enemy.name));}
+            if (enemy!=null) { Battle.attack(Battle.getTarget(enemy.name));}
         }
         public override Transform load() {
             base.load().setName("Fight Scene");
-            Battle.newBattle(GC.player,GC.player.location.getMonster());
+            Battle.newBattle(new List<Entity>() { GC.player }, new List<Entity>() { GC.player.location.getMonster() , GC.player.location.getMonster() });
             combat = sp.combatPrefab.instantiate(scene);
             party = combat.FindChild("Party");
             enemies = combat.FindChild("Enemies");
-            foreach(Entity e in Battle.party) {
-                Transform name = addText(party, e.name).rt().Anchor(AnchorPoint.Left).Move(10,0).TextAdjustWidth().setName(e.name);
-                e.hp.addTextUpdate(addText(name, e.hp.ToString()).bestFit(false).fontSize(-4, true).rt().Anchor(AnchorPoint.BotCenter).Move(0,-10).TextAdjustWidth().setName("Health").text());
-            }
-            foreach(Entity e in Battle.enemies) {
-                Transform name = addText(enemies, e.name).rt().Anchor(AnchorPoint.Right).Move(-10,0).TextAdjustWidth().setName(e.name);
-                e.hp.addTextUpdate(addText(name, e.hp.ToString()).bestFit(false).fontSize(-4, true).rt().Anchor(AnchorPoint.BotCenter).Move(0,-10).TextAdjustWidth().setName("Health").text());
-            }
+            createFighters(Battle.party, party, AnchorPoint.Left);
+            createFighters(Battle.enemies, enemies, AnchorPoint.Right);
             addButton(options, "Attack", "Attack").setButton(() => {
                 if(GC.player.hp.state!=State.dead) selectEnemy();
                 else {
@@ -82,6 +79,20 @@ public static class Scenes {
             addButton(scene, "Cancel", "Cancel").disable().setButton(() => { selectEnemy(null); }).rt().Anchor(AnchorPoint.BotCenter).Move(0,10);
             addText(scene, "Select target", "SelectInfo").rt().Anchor(AnchorPoint.Center).Move(0, 0).disable();
             return scene;
+        }
+        private void createFighters(List<Entity> list, Transform parent, AnchorPoint side) {
+            foreach (Entity e in list) {
+                Transform name = addText(parent, e.name).rt().Anchor(side).TextAdjustWidth().setName(e.name);
+                int toSide = 10; if (side == AnchorPoint.Right) toSide *= -1;
+                switch (parent.childCount) {
+                    case 1: name.rt().Move(toSide, 0);      break;
+                    case 2: name.rt().Move(toSide, 50);     break;
+                    case 3: name.rt().Move(toSide, 100);    break;
+                    case 4: name.rt().Move(toSide, -50);    break;
+                    case 5: name.rt().Move(toSide, -100);   break;
+                }
+                e.hp.addTextUpdate(addText(name, e.hp.ToString()).bestFit(false).fontSize(-4, true).rt().Anchor(AnchorPoint.BotCenter).Move(0, -10).TextAdjustWidth().setName("Health").text());
+            }
         }
     }
     //startMenu, newGame, play, fight

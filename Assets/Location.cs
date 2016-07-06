@@ -13,8 +13,10 @@ using UnityEngine;
     }
     public Location addMonster(Monster monster) { monsterList.Add(monster); return this; }
     public Monster getMonster() {
-        foreach(Monster m in monsterList) Debug.Log(m.name);
         return monsterList[UnityEngine.Random.Range(0,monsterList.Count)].New(getLevel());
+    }
+    public List<Monster> getMonsters() {
+        return new List<Monster>() { getMonster(), getMonster() };
     }
     public int getLevel() { return UnityEngine.Random.Range((int)monsterLevelRange.x, (int)monsterLevelRange.y); }
 }

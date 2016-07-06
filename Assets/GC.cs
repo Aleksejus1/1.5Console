@@ -2,6 +2,7 @@
 using System;
 using UnityEngine.UI;
 using UnityEditor;
+using UnityEngine.EventSystems;
 
 public class ReadOnlyAttribute : PropertyAttribute{
 }
@@ -36,6 +37,7 @@ public static class TransformEx {
     }
     ///<summary>Enables GameObject</summary>
     public static Transform newButton(this Transform t, Graphic targetGraphic = null) {
+        t.gameObject.AddComponent<OnClickRelay>();
         Button b = t.gameObject.AddComponent<Button>();
         b.targetGraphic = targetGraphic;
         Color hexColor = new Color();
@@ -189,6 +191,7 @@ public class GC : MonoBehaviour {
         public Transform infoBarPrefab, buttonPrefab, inputFieldPrefab, textPrefab;
     }
     public ScenePrefabs scenePrefabs;
+    public static Transform lastButton;
     public new Camera_ camera;
     public static Player player = new Player();
     public static Transform Canvas;
@@ -205,7 +208,7 @@ public class GC : MonoBehaviour {
     }
     public static void CreateNewCharacter(string name){
         player.name = name;
-        player.hp.Current = player.hp.Max = 3;
+        player.hp.Current = player.hp.Max = 10;
         player.location = new Locations.Wilderness();
     }
 }
