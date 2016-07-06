@@ -17,7 +17,45 @@ public class ReadOnlyDrawer : PropertyDrawer{
     }
 }
 
+public static class TextEx {
+    ///<summary>Sets the state of Best Fit</summary>
+    public static Text bestFit(this Text text, bool state) { text.resizeTextForBestFit = state; return text; }
+    ///<summary>Sets the font Size</summary>
+    public static Text fontSize(this Text text, int size, bool additive = false) { if(additive) text.fontSize+=size; else text.fontSize = size; return text; }
+}
 public static class TransformEx {
+    public static Transform addTimer(this Transform t, float time, Func<Action> endTimeFunction, Func<Action> updateTimeFunction = null) {
+        Timer ti = t.gameObject.AddComponent<Timer>();
+        ti.time = time;
+        ti.endFunction = endTimeFunction;
+        ti.updateFunction = updateTimeFunction;
+        return t;
+    }
+    public static Timer timer(this Transform t) {
+        return t.GetComponent<Timer>();
+    }
+    ///<summary>Enables GameObject</summary>
+    public static Transform newButton(this Transform t, Graphic targetGraphic = null) {
+        Button b = t.gameObject.AddComponent<Button>();
+        b.targetGraphic = targetGraphic;
+        Color hexColor = new Color();
+        ColorBlock cb = b.colors;
+        if(ColorUtility.TryParseHtmlString("#FFFFFFFF", out hexColor)) cb.normalColor       = hexColor;
+        if(ColorUtility.TryParseHtmlString("#C8C8C8FF", out hexColor)) cb.highlightedColor  = hexColor;
+        if(ColorUtility.TryParseHtmlString("#919191FF", out hexColor)) cb.pressedColor      = hexColor;
+        if(ColorUtility.TryParseHtmlString("#5A5A5AFF", out hexColor)) cb.disabledColor     = hexColor;
+        b.colors = cb;
+        Navigation n = b.navigation; n.mode = Navigation.Mode.None; b.navigation = n;
+        return t;
+    }
+    ///<summary>Enables GameObject</summary>
+    public static Transform enable(this Transform transform) { transform.gameObject.SetActive(true); return transform; }
+    ///<summary>Disables GameObject</summary>
+    public static Transform disable(this Transform transform) { transform.gameObject.SetActive(false); return transform; }
+    ///<summary>Sets the Text Component' state of Best Fit</summary>
+    public static Transform bestFit(this Transform transform, bool state) { transform.text().bestFit(state); return transform; }
+    ///<summary>Sets the Text Component' font Size</summary>
+    public static Transform fontSize(this Transform transform, int size, bool additive = false) { transform.text().fontSize(size,additive); return transform; }
     /// <summary>Destroys all children within this Transform</summary>
     public static Transform Clear(this Transform transform) {
         foreach (Transform child in transform) GameObject.Destroy(child.gameObject);
@@ -32,7 +70,7 @@ public static class TransformEx {
     }
     /// <summary>Changes the transform's name</summary>
     public static Transform setName(this Transform transform, string newName) {
-        transform.name = newName;
+        transform.gameObject.name = transform.name = newName;
         return transform;
     }
     /// <summary>Returns RectTransform Component</summary>
@@ -113,6 +151,10 @@ public static class RectTransformEx {
         rt.anchoredPosition = new Vector2(x, y);
         return rt;
     }
+    public static RectTransform TextAdjustWidth(this RectTransform rt) {
+        rt.gameObject.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+        return rt;
+    }
 }
 
 [Serializable]
@@ -143,8 +185,8 @@ public class GC : MonoBehaviour {
         }
     }
     [Serializable] public class ScenePrefabs{
-        public Transform defaultScene, startMenu;
-        public Transform infoBarPrefab, buttonPrefab, inputFieldPrefab;
+        public Transform defaultScene, startMenu, combatPrefab;
+        public Transform infoBarPrefab, buttonPrefab, inputFieldPrefab, textPrefab;
     }
     public ScenePrefabs scenePrefabs;
     public new Camera_ camera;
@@ -154,15 +196,16 @@ public class GC : MonoBehaviour {
         Scenes.sp = scenePrefabs;
         Canvas = GameObject.FindGameObjectWithTag("Canvas").transform;
         camera.c = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-        Scenes.load(typeof(Scenes.startMenu));
+        CreateNewCharacter("Alek");
+        Scenes.load(typeof(Scenes.play));
     }
     void Update() {
         camera.flash();
+        if(Input.GetKeyDown(KeyCode.M)) player.hp.Current--;
     }
     public static void CreateNewCharacter(string name){
         player.name = name;
-        player.hp.max = 1;
-        player.hp.current = 1;
+        player.hp.Current = player.hp.Max = 3;
         player.location = new Locations.Wilderness();
     }
 }

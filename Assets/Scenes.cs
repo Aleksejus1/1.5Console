@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.UI;
 
 [Serializable]
 public static class Scenes {
@@ -12,16 +13,19 @@ public static class Scenes {
         public override Transform load() {
             base.load();
             loadScene(sp.startMenu, GC.Canvas).FindChild("NewGame").setButton(() => Scenes.load(typeof(newGame)));
+            scene.setName("StartMenu Scene");
             return scene;
         }
     }
     public class newGame : defaultScene {
         public newGame() : base(Scenes.sp) { }
         public override Transform load() {
-            base.load();
-            addInputField(options, "Name", "Character Name").setIFLimit(16);
-            sp.buttonPrefab.instantiate(scene).setText("Create").rt().Anchor(AnchorPoint.BotCenter).Move(0f, 10f)
-                .setButton(() => { GC.CreateNewCharacter(getIF("Name").text); Scenes.load(typeof(play)); });
+            base.load().setName("NewGame Scene");
+            addInputField(options, "Character Name", "Name").setIFLimit(16);
+            addButton(scene,"Create").rt().Anchor(AnchorPoint.BotCenter).Move(0f, 10f).setButton(() => {
+                GC.CreateNewCharacter(getIF("Name").text);
+                Scenes.load(typeof(play));
+            });
             return scene;
         }
     }
@@ -29,25 +33,54 @@ public static class Scenes {
         public play() : base(Scenes.sp) { }
         public override Transform load() {
             hasInfoBar = true;
-            base.load();
+            base.load().setName("Play Scene");
             addFightButton();
             return scene;
         }
     }
     public class fight : defaultScene {
+        public Transform combat, party, enemies;
         public fight() : base(Scenes.sp) { }
+        public void selectEnemy() {
+            getButton("Attack").transform.disable();
+            getButton("Cancel").transform.enable();
+            getText("SelectInfo").transform.enable();
+            foreach(Transform child in enemies) {
+                buttons.Add(child.newButton().button());
+                child.setButton(()=> { selectEnemy(child); }).button().targetGraphic = child.text();
+            }
+        }
+        public void selectEnemy(Transform enemy) {
+            Debug.Log("Enemy has been selected");
+            getButton("Attack").transform.enable();
+            getButton("Cancel").transform.disable();
+            getText("SelectInfo").transform.disable();
+            foreach(Transform child in enemies) if(child.button()) GameObject.Destroy(child.button());
+            if(enemy!=null) { Battle.attack(Battle.getTarget(enemy.name));}
+        }
         public override Transform load() {
-            //MonoBehaviour.print("Hi Loader, wanna fight?");
-            //Yes i do want to fight and i can see that there is a worm on the ground there, but how Do i fight?
-            //Start simple Loader, just have a button to attack and make it do damage to the worm and then if worm is still alive let it attack the player.
-            //Sounds simple enough, good idea Console.
-            hasInfoBar = true;
-            base.load();
-            addButton(options, "Attack").setButton(() => {
-                Debug.Log(">----Attack----<");
-                if (!Battle.inProgress) Battle.newBattle(GC.player, GC.player.location.getMonster());
-                Battle.attack(Battle.getTarget("Worm"));
+            base.load().setName("Fight Scene");
+            Battle.newBattle(GC.player,GC.player.location.getMonster());
+            combat = sp.combatPrefab.instantiate(scene);
+            party = combat.FindChild("Party");
+            enemies = combat.FindChild("Enemies");
+            foreach(Entity e in Battle.party) {
+                Transform name = addText(party, e.name).rt().Anchor(AnchorPoint.Left).Move(10,0).TextAdjustWidth().setName(e.name);
+                e.hp.addTextUpdate(addText(name, e.hp.ToString()).bestFit(false).fontSize(-4, true).rt().Anchor(AnchorPoint.BotCenter).Move(0,-10).TextAdjustWidth().setName("Health").text());
+            }
+            foreach(Entity e in Battle.enemies) {
+                Transform name = addText(enemies, e.name).rt().Anchor(AnchorPoint.Right).Move(-10,0).TextAdjustWidth().setName(e.name);
+                e.hp.addTextUpdate(addText(name, e.hp.ToString()).bestFit(false).fontSize(-4, true).rt().Anchor(AnchorPoint.BotCenter).Move(0,-10).TextAdjustWidth().setName("Health").text());
+            }
+            addButton(options, "Attack", "Attack").setButton(() => {
+                if(GC.player.hp.state!=State.dead) selectEnemy();
+                else {
+                    int id = infoText(scene,"You're dead",2,"DeadInfo");
+                    if(id!=-1) texts[id].transform.rt().Anchor(AnchorPoint.TopCenter).Move(0, -10);
+                }
             });
+            addButton(scene, "Cancel", "Cancel").disable().setButton(() => { selectEnemy(null); }).rt().Anchor(AnchorPoint.BotCenter).Move(0,10);
+            addText(scene, "Select target", "SelectInfo").rt().Anchor(AnchorPoint.Center).Move(0, 0).disable();
             return scene;
         }
     }

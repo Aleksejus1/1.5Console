@@ -4,14 +4,11 @@ using System.Linq;
 using UnityEngine;
 
 public static class Monsters {
-    public class worm : Monster{
-        public worm(int level) : base("Worm", new Dice("2d2"), new Dice("1d2")){
-            hp.current = hp.max += HPD + HD * (level - 1);
-        }
-        public override double dealDamage() {
-            Debug.Log(name + " is dealing damage. Type = Overriden");
-            return new Dice("1d2").roll();
-        }
+    public class Worm : Monster{
+        public Worm() : base("Worm", new Dice("2d2"), new Dice("1d2")){}
+        public override int dealDamage() { return new Dice("1d1").roll(); }
     }
-    public static List<Type> monsterList = typeof(Monsters).GetNestedTypes().OfType<Type>().ToList(); //List of all monster types
+    public static Worm worm = new Worm().setName("12345678901234567890") as Worm;
+    public static Worm notAWorm = new Worm().setName("yesiamaverylongnameandthereisnothingyoucandoaboutit") as Worm;
+    public static List<Monster> monsterList = new List<Monster>() { worm, notAWorm }; //List of all monster types
 }

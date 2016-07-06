@@ -16,7 +16,7 @@ public static class Battle {
     }
     public static Entity getTarget(string targetName) {
         Entity target = null;
-        foreach (Entity e in enemies) if (e.name == targetName) target = e;
+        foreach (Entity e in enemies.Concat(party)) if (e.name == targetName) target = e;
         return target;
     }
     public static void takeTurns() {
@@ -38,7 +38,6 @@ public static class Battle {
         Battle.enemies = enemies;
         combatants.AddRange(Battle.enemies);
         rollInitiative();
-        foreach (Entity e in combatants) Debug.Log(e.name + " " + e.initiativeRoll);
     }
     public static void resetBattle() {
         turn = 0;
