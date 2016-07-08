@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 
 [Serializable]
 public static class Scenes {
+    public static Scene scene;
     public static InfoBar infoBar = null;
     public static GC.ScenePrefabs sp;
     public static Transform currentScene = null;
@@ -54,6 +55,10 @@ public static class Scenes {
                 }
             }
         }
+        public override void unload() {
+            if (Scenes.scene == this) GC.player.hp.updates.Remove(getText(GC.player.name + "HP"));
+            base.unload();
+        }
         public void selectEnemy(Transform enemy) {
             getButton("Attack").transform.enable();
             getButton("Cancel").transform.disable();
@@ -72,7 +77,7 @@ public static class Scenes {
             addButton(options, "Attack", "Attack").setButton(() => {
                 if(GC.player.hp.state!=State.dead) selectEnemy();
                 else {
-                    int id = infoText(scene,"You're dead",2,"DeadInfo");
+                    int id = infoText(scene,"You're dead",2,true,"DeadInfo");
                     if(id!=-1) texts[id].transform.rt().Anchor(AnchorPoint.TopCenter).Move(0, -10);
                 }
             });
@@ -91,12 +96,13 @@ public static class Scenes {
                     case 4: name.rt().Move(toSide, -50);    break;
                     case 5: name.rt().Move(toSide, -100);   break;
                 }
-                e.hp.addTextUpdate(addText(name, e.hp.ToString()).bestFit(false).fontSize(-4, true).rt().Anchor(AnchorPoint.BotCenter).Move(0, -10).TextAdjustWidth().setName("Health").text());
+                e.hp.addTextUpdate(addText(name, e.hp.ToString(), e.name+"HP").bestFit(false).fontSize(-4, true).rt().Anchor(AnchorPoint.BotCenter).Move(0, -10).TextAdjustWidth().setName("Health").text());
             }
         }
     }
     //startMenu, newGame, play, fight
-    public static void load(Type type, bool keepInfoBar = false) {
-        currentScene = (Activator.CreateInstance(type) as Scene).load();
+    public static void load(Type type) {
+        scene = Activator.CreateInstance(type) as Scene;
+        currentScene = scene.load();
     }
 }

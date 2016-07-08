@@ -23,8 +23,18 @@ Battle system:
 */
 
 public static class Battle {
+    private static int PartyAlive = 0, EnemiesAlive = 0;
+    public static int partyAlive { get { return PartyAlive; } set {
+            if (value == 0 && PartyAlive > value) lose();
+            PartyAlive = value;
+        }
+    }
+    public static int enemiesAlive { get { return EnemiesAlive; } set {
+            if (value == 0 && EnemiesAlive > value) win();
+            EnemiesAlive = value;
+        }
+    }
     private static int TurnHolder = 0;
-    public static int partyAlive = 0, enemiesAlive = 0;
     public static int turn = 0;
     public static int turnHolder{
         get { return TurnHolder; }
@@ -39,11 +49,11 @@ public static class Battle {
     public static void newBattle(Entity party, Entity enemies) { newBattle(new List<Entity>() { party }, new List<Entity>() { enemies }); }
     public static void nextTurn() {
         turn++;
-        Debug.Log("New Turn["+turn+"] Starts");
     }
     public static void attack(Entity target) {
         takeTurns();
         combatants[turnHolder].attack(target);
+        if (target.hp.state == State.dead) enemiesAlive--;
         turnHolder++;
         takeTurns();
     }
@@ -55,14 +65,19 @@ public static class Battle {
     public static void takeTurns() {
         while (combatants[turnHolder] != GC.player) {
             List<Entity> targetList;
-            if (party.IndexOf(combatants[turnHolder]) > -1) targetList = enemies; else targetList = party;
-            takeTurn(combatants[turnHolder], targetList);
+            bool tlist = false;
+            if (party.IndexOf(combatants[turnHolder]) > -1) { targetList = enemies; tlist = true; } else targetList = party;
+            if (takeTurn(combatants[turnHolder], targetList).hp.state == State.dead) {
+                if (tlist) enemiesAlive--;
+                else partyAlive--;
+            };
             turnHolder++;
         }
     }
-    public static void takeTurn(Entity turnee, List<Entity> targetList) {
+    public static Entity takeTurn(Entity turnee, List<Entity> targetList) {
         Entity target = targetList[Random.Range(0, targetList.Count)];
         if (turnee.hp.state!=State.dead) turnee.attack(target);
+        return target;
     }
     public static void renameDuplicates(List<Entity> list) {
         List<Entity> duplicates = new List<Entity>();
@@ -101,5 +116,18 @@ public static class Battle {
     private static void rollInitiative() {
         foreach (Entity e in combatants) e.initiativeRoll = e.initiative.roll();
         combatants = combatants.OrderBy(o => -o.initiativeRoll).ToList();
+    }
+    private static void win() {
+        Debug.Log("You win!");
+        int xpAward = 0;
+        foreach (Entity e in enemies) { xpAward += (e as Monster).getXP(); }
+        xpAward /= party.Count;
+        foreach (Entity e in party) e.xpCurrent += xpAward;
+        //Get loot or what not
+        //Return to play scene
+        Scenes.load(typeof(Scenes.play));
+    }
+    private static void lose() {
+        Debug.Log("You lose.");
     }
 }

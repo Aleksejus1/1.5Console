@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [Serializable] public class InfoBar{
@@ -9,6 +10,12 @@ using UnityEngine.UI;
         transform = t;
         health = t.FindChild("Health").text();
         GC.player.hp.addFunctionUpdate(updateHealth);
+        health.gameObject.AddComponent<mouseOver>().setFunctions((PointerEventData e) => {
+            int it = Scenes.scene.infoText(health.transform, GC.player.xpToString(), 1, false, GC.player.name + "XP");
+            if(it!=-1) Scenes.scene.texts[it].transform.rt().Move(0,-12).fontSize(-4,true).text().setColor(175,175,175,255);
+        }, (PointerEventData e) => {
+            Scenes.scene.getText(GC.player.name + "XP").transform.timer().reset(true);
+        });
         name = t.FindChild("Name").text();
         location = t.FindChild("Location").text();
         updateAll();

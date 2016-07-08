@@ -21,15 +21,20 @@ public class ReadOnlyDrawer : PropertyDrawer{
 public static class TextEx {
     ///<summary>Sets the state of Best Fit</summary>
     public static Text bestFit(this Text text, bool state) { text.resizeTextForBestFit = state; return text; }
+    ///<summary>Sets the color of text</summary>
+    public static Text setColor(this Text text, Color color) { text.color = color; return text; }
+    ///<summary>Sets the color of text</summary>
+    public static Text setColor(this Text text, int r, int g, int b, int a) { return setColor(text, new Color(r / 255f, g / 255f, b / 255f, a / 255f)); }
     ///<summary>Sets the font Size</summary>
     public static Text fontSize(this Text text, int size, bool additive = false) { if(additive) text.fontSize+=size; else text.fontSize = size; return text; }
 }
 public static class TransformEx {
-    public static Transform addTimer(this Transform t, float time, Func<Action> endTimeFunction, Func<Action> updateTimeFunction = null) {
+    public static Transform addTimer(this Transform t, float time, Func<Action> endTimeFunction, Func<Action> updateTimeFunction = null, Func<Action> resetFunction = null) {
         Timer ti = t.gameObject.AddComponent<Timer>();
         ti.time = time;
         ti.endFunction = endTimeFunction;
         ti.updateFunction = updateTimeFunction;
+        ti.resetFunction = resetFunction;
         return t;
     }
     public static Timer timer(this Transform t) {
@@ -208,7 +213,7 @@ public class GC : MonoBehaviour {
     }
     public static void CreateNewCharacter(string name){
         player.name = name;
-        player.hp.Current = player.hp.Max = 10;
+        player.hp.Current = player.hp.Max = 100;
         player.location = new Locations.Wilderness();
     }
 }

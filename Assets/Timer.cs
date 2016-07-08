@@ -6,13 +6,14 @@ public class Timer : MonoBehaviour {
     private float CurrentTime;
     public float currentTime { get { return CurrentTime; } }
     public float time;
-    public Func<Action> endFunction,updateFunction;
+    public bool active = true;
+    public Func<Action> endFunction,updateFunction,resetFunction;
 
-	void Start () {
-        reset();
+	void Awake () {
+        reset(active);
 	}
 	void Update () {
-        if(CurrentTime>0) {
+        if(active&&CurrentTime>0) {
             CurrentTime-=Time.deltaTime;
             if(CurrentTime<0) {
                 CurrentTime = 0;
@@ -21,8 +22,10 @@ public class Timer : MonoBehaviour {
             else updateFunction();
         }
 	}
-    public void reset() {
+    public void reset(bool active) {
+        if(resetFunction!=null) resetFunction();
         CurrentTime = time;
+        this.active = active;
     }
     public float progress() { return CurrentTime/time; }
 }

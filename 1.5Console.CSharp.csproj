@@ -93,6 +93,7 @@
     <Compile Include="Assets\Scenes.cs" />
     <Compile Include="Assets\Timer.cs" />
     <Compile Include="Assets\arrangeChildren.cs" />
+    <Compile Include="Assets\mouseOver.cs" />
     <Compile Include="Assets\relativeToParent.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\SyntaxTree\UnityVS\2015\UnityVS.CSharp.targets" />
