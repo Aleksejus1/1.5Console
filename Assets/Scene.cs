@@ -22,7 +22,7 @@ public class Scene {
         if (Scenes.currentScene) GameObject.Destroy(Scenes.currentScene.gameObject);
     }
     protected Transform loadScene(Transform scenePrefab, Transform parent) { return scene = scenePrefab.instantiate(parent); }
-    protected Transform addInfoBar(){
+    public Transform addInfoBar(){
         if (Scenes.infoBar == null){
             Transform retVal = sp.infoBarPrefab.instantiate(GC.Canvas);
             retVal.rt().anchoredPosition = Vector2.zero;
@@ -31,7 +31,7 @@ public class Scene {
         }
         else return null;
     }
-    protected Transform addButton(Transform parent, string text, string ButtonName = ""){
+    public Transform addButton(Transform parent, string text, string ButtonName = ""){
         if(ButtonName=="")ButtonName=text+" Button";
         buttons.Add(sp.buttonPrefab.instantiate(parent).setText(text).setName(ButtonName).button());
         return buttons[buttons.Count-1].transform;
@@ -41,7 +41,7 @@ public class Scene {
         texts.Add(sp.textPrefab.instantiate(parent).setText(text).setName(textName).text());
         return texts[texts.Count-1].transform;
     }
-    protected Transform addInputField(Transform parent, string placeHolderText, string IFName = ""){
+    public Transform addInputField(Transform parent, string placeHolderText, string IFName = ""){
         if(IFName=="")IFName=placeHolderText+" Input Field";
         IF.Add(sp.inputFieldPrefab.instantiate(parent).setIFPHText(placeHolderText).setName(IFName).text());
         return IF[IF.Count - 1].transform;
@@ -84,7 +84,10 @@ public class defaultScene : Scene{
     }
     public Transform options;
     public defaultScene(GC.ScenePrefabs sp) : base(sp) {}
-    protected void addFightButton(){
-        addButton(options, "Fight").button().onClick.AddListener(() => Scenes.load(typeof(Scenes.fight)));
+    public void addFightButton(){
+        addButton(options, "Fight").setButton(() => Scenes.load(typeof(Scenes.fight)));
+    }
+    public void addExploreButton() {
+        addButton(options, "Explore").setButton(() => { Scenes.load(typeof(Scenes.explore)); });
     }
 }

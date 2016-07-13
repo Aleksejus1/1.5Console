@@ -12,6 +12,7 @@ using UnityEngine;
         if (monsterList != null) this.monsterList = monsterList;
     }
     public Location addMonster(Monster monster) { monsterList.Add(monster); return this; }
+    public virtual void load(defaultScene scene) {}
     public Monster getMonster() {
         return monsterList[UnityEngine.Random.Range(0,monsterList.Count)].New(getLevel());
     }

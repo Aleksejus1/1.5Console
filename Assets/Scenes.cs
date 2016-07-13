@@ -35,7 +35,7 @@ public static class Scenes {
         public override Transform load() {
             hasInfoBar = true;
             base.load().setName("Play Scene");
-            addFightButton();
+            GC.player.location.load(this);
             return scene;
         }
     }
@@ -98,6 +98,15 @@ public static class Scenes {
                 }
                 e.hp.addTextUpdate(addText(name, e.hp.ToString(), e.name+"HP").bestFit(false).fontSize(-4, true).rt().Anchor(AnchorPoint.BotCenter).Move(0, -10).TextAdjustWidth().setName("Health").text());
             }
+        }
+    }
+    public class explore : defaultScene {
+        public explore() : base(Scenes.sp) {}
+        public override Transform load() {
+            hasInfoBar = true;
+            base.load().setName("Explore Scene");
+
+            return scene;
         }
     }
     //startMenu, newGame, play, fight
